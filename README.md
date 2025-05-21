@@ -54,7 +54,7 @@ split amounts among members, and calculate each member’s balance. It is ideal 
 ## 🛠️ Technologies Used
 
 - **Frontend**: HTML, CSS, JavaScript, React
-- **Backend**: ASP.NET Core (if used)
+- **Backend**: ASP.NET Core
 - **Data Storage**: InMemory DB / LocalStorage
 
 ---
