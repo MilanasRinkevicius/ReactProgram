@@ -42,15 +42,6 @@ split amounts among members, and calculate each member’s balance. It is ideal 
 
 ---
 
-## 🖼️ Screenshots
-
-1. **Main window** – group list and control buttons  
-2. **Group window** – list of members and their balances  
-3. **Transaction form** – to add a new transaction  
-4. **Transaction history view** *(if implemented)*
-
----
-
 ## 🛠️ Technologies Used
 
 - **Frontend**: HTML, CSS, JavaScript, React
