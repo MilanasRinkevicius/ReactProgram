@@ -9,7 +9,7 @@ split amounts among members, and calculate each member’s balance. It is ideal 
 ## 📦 Project Structure
 
 - **Frontend**: React + TypeScript / HTML + CSS
-- **Backend**: ASP.NET Core + InMemory DB (if applicable)
+- **Backend**: ASP.NET Core + InMemory DB
 - **API**: RESTful
 - **UI**: Simple, clean, and intuitive interface design
 
