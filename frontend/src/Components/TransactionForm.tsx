@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { previewTransaction } from "../pages/NewTransactionPageWrapper";
+import { getGroupById } from "../api/groupsApi";
+import { Group } from "../types/group";
+import { useParams } from "react-router-dom";
 
 type Member = { id: number; name: string };
 
@@ -12,32 +16,10 @@ export default function TransactionForm({ usersInGroup, onSubmit }: Props) {
   const [payerId, setPayerId] = useState<number>(usersInGroup[0]?.id || 0);
   const [amount, setAmount] = useState<number>(0);
   const [splitMethod, setSplitMethod] = useState<"equal" | "percent" | "manual">("equal");
+  const { groupId } = useParams<{ groupId: string }>();
   const [splits, setSplits] = useState<Record<number, number>>(() =>
     Object.fromEntries(usersInGroup.map((u) => [u.id, 0]))
   );
-  const updated = Object.fromEntries(
-  usersInGroup
-    .filter(u => u.id !== payerId)
-    .map(u => [u.id, usersInGroup])
-);
-
-  const handleSplitCalculation = () => {
-    const total = amount;
-    const activeMembers = usersInGroup.map((u) => u.id);
-
-    let newSplits: Record<number, number> = {};
-
-    if (splitMethod === "equal") {
-      const share = parseFloat((total / activeMembers.length).toFixed(2));
-      newSplits = Object.fromEntries(activeMembers.map((id) => [id, share]));
-    } else if (splitMethod === "percent") {
-      // keep current state
-    } else {
-      // manual, don't change
-    }
-
-    setSplits(newSplits);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,8 +64,27 @@ export default function TransactionForm({ usersInGroup, onSubmit }: Props) {
             type="button"
             onClick={() => {
               setStep(2);
-              handleSplitCalculation();
-            }}
+              const participants = Object.entries(splits)
+              .filter(([id]) => Number(id) !== payerId)
+              .map(([id, share]) => ({
+                memberId: Number(id),
+                share,
+              }));
+
+            previewTransaction(Number(groupId), {
+              payerId,
+              amount,
+              divisionType: splitMethod,
+              participants,
+            }).then(res => {
+              const newSplits = Object.fromEntries(
+                res.data.map((item: any) => [item.memberId, item.share])
+              );
+              setSplits(newSplits);
+            }).catch(err => {
+              console.error("Preview failed", err);
+            });
+          }}
             className="bg-blue-500 text-white px-4 py-2 rounded"
           >
             Next
@@ -105,7 +106,6 @@ export default function TransactionForm({ usersInGroup, onSubmit }: Props) {
                     checked={splitMethod === method}
                     onChange={(e) => {
                       setSplitMethod(e.target.value as any);
-                      handleSplitCalculation();
                     }}
                   />
                   <span>{method.charAt(0).toUpperCase() + method.slice(1)}</span>

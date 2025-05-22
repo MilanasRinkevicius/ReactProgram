@@ -31,21 +31,6 @@ namespace backend.Controllers
 
             return group is null ? NotFound() : group;
         }
-        
-        [HttpDelete("api/groups/{groupId}/members/{memberId}")]
-        public IActionResult DeleteMember(int groupId, int memberId)
-        {
-            var member = _context.Members
-                .FirstOrDefault(m => m.GroupId == groupId && m.Id == memberId);
-
-            if (member == null)
-                return NotFound();
-
-            _context.Members.Remove(member);
-            _context.SaveChanges();
-
-            return NoContent();
-        }
 
         [HttpGet("{id}/dto")]
         public async Task<ActionResult<GroupDto>> GetGroupDto(int id)

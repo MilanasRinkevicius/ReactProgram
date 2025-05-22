@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Transaction } from "../types/transaction";
+import { DivisionType, Transaction } from "../types/transaction";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
@@ -11,7 +11,7 @@ export const createTransaction = (
   data: {
     payerId: number;
     amount: number;
-    divisionType: string;
+    divisionType: DivisionType;
     participants: {memberId: number; share: number} [];
   }
 ) => {

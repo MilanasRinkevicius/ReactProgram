@@ -36,17 +36,20 @@ namespace backend.Dtos
         }
         public static TransactionDto ToDto(Transaction t)
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             return new TransactionDto{
                 Id = t.Id,
                 PayerId = t.PayerId,
+                Payer = t.Payer ?? new(),
                 Amount = t.Amount,
-                DivisionType = t.DivisionType,
+                divisiontype = t.DivisionType,
                 Participants = t.Shares?.Select(p => new TransactionShareDto
                 {
                     MemberId = p.MemberId,
                     Share = p.ShareAmount
                 }).ToList() ?? new List<TransactionShareDto>()
             };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
             
         public static List<TransactionDto> ToDto(List<Transaction> transactions)

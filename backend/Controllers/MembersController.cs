@@ -79,13 +79,17 @@ namespace backend.Controllers
                 .Where(t => t.GroupId == groupId)
                 .ToListAsync();
 
+            var memberIds = members.Select(m => m.Id).ToHashSet();
+
+            var balance = transactions.SelectMany(t => t.Shares).Where(s => memberIds.Contains(s.MemberId)).Sum(s => -s.ShareAmount);
+
+            
+            balance += transactions.Where(t=>t.PayerId.HasValue && memberIds.Contains(t.PayerId.Value)).Sum(t => t.Amount);
+
             var result = members.Select(m => new MemberBalanceDto
             {
                 Id = m.Id,
-                Name = m.Name,
-                Balance = transactions
-                    .Where(t => t.Id == m.Id)
-                    .Sum(t => t.Amount)
+                Name = m.Name                
             });
 
             return Ok(result);

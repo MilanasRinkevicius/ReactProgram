@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { createTransaction } from '../api/transactionsApi';
+import {useNavigate} from 'react-router-dom';
 
 interface Member {
   id: number;
@@ -11,65 +13,57 @@ interface Props {
   onSubmit: (payerId: number, amount: number, participants: { memberId: number, share: number }[]) => void;
 }
 
+interface ParticipantInput {
+  memberId: number;
+  share: number;
+}
+
 export default function NewTransactionPage({ usersInGroup, onSubmit }: Props) {
+  const {id} = useParams();
+  const groupId = Number(id);
+  const navigate = useNavigate();
   const [payerId, setPayerId] = useState<number>(usersInGroup[0]?.id || 0);
+  const [PayerName] = useState<string>(usersInGroup[0]?.name || "");
   const [amount, setAmount] = useState<number>(0);
   const [splitMethod, setSplitMethod] = useState<'equal' | 'percentage' | 'shares'>('equal');
-  const [inputs, setInputs] = useState<Record<number, number>>(() => {
-    if (Array.isArray(usersInGroup)){
-    Object.fromEntries(usersInGroup.map(u => [u.id, 0]))
-    }
-    return{};
-});
+  const [inputs, setInputs] = useState<Record<number, number>>(
+      Object.fromEntries(usersInGroup.map(u => [u.id, 0]))
+    );
 
-  //Update split values when method or amount changes
-  const updateInputs = () => {
-    if (splitMethod === 'equal') {
-      const perPerson = amount / usersInGroup.length;
-      const updated = Object.fromEntries(usersInGroup.map(u => [u.id, perPerson]));
-      setInputs(updated);
-    } else {
-      //Do nothing for percentage/shares — let user input manually
-    }
+
+
+  const handleSubmit = async () => {
+  if (!payerId || !amount || amount <= 0 || usersInGroup.length === 0) {
+    alert("Please fill out every field.");
+    return;
+  }
+
+  const participants = usersInGroup.filter(user=>user.id !== payerId).map(user=>({
+    memberId: user.id,
+    share: inputs[user.id] || 0
+  }));
+  
+  const payload = {
+    payerId,
+    amount,
+    divisionType: splitMethod,
+    participants
   };
 
-  const handleSubmit = () => {
-    if (splitMethod === 'percentage') {
-      const total = Object.values(inputs).reduce((acc, val) => acc + val, 0);
-      if (Math.round(total) !== 100) {
-        alert("Percentages must add up to 100%");
-        return;
-      }
-      const participants = usersInGroup.map(u => ({
-        memberId: u.id,
-        share: (inputs[u.id] / 100) * amount,
-      }));
-      onSubmit(payerId, amount, participants);
-    } else if (splitMethod === 'shares') {
-      const totalShares = Object.values(inputs).reduce((a, b) => a + b, 0);
-      if (totalShares === 0) {
-        alert("Total shares must be more than 0");
-        return;
-      }
-
-      const participants = usersInGroup.map(u => ({
-        memberId: u.id,
-        share: (inputs[u.id] / totalShares) * amount,
-      }));
-      onSubmit(payerId, amount, participants);
-    } else {
-      const participants = usersInGroup.map(u => ({
-        memberId: u.id,
-        share: amount / usersInGroup.length,
-      }));
-      onSubmit(payerId, amount, participants);
-    }
-  };
+  try {
+    await createTransaction(groupId, payload);
+    alert("Transaction was succesfully added");
+    navigate(`/groups/${groupId}`);
+  } catch (error) {
+    console.error("Something went wrong", error);
+    alert("Something went wrong");
+  }
+};
   const payer = usersInGroup.find(m => m.id === payerId);
   return (
     <div className="space-y-4">
       <div className="flex gap-4 items-center">
-        <label className="font-semibold">Paid by {payer?.name || "unknown"}</label>
+        <label className="font-semibold">Paid by {PayerName}</label>
         <select value={payerId} onChange={e => setPayerId(Number(e.target.value))} className="border px-2 py-1 rounded">
           {usersInGroup.map(user => (
             <option key={user.id} value={user.id}>{user.name}</option>
@@ -82,14 +76,13 @@ export default function NewTransactionPage({ usersInGroup, onSubmit }: Props) {
           value={amount}
           onChange={e => setAmount(Number(e.target.value))}
           className="border px-2 py-1 rounded w-28"
-          onBlur={updateInputs}
         />
       </div>
 
       <div className="flex gap-4 items-center">
         <label className="font-semibold">Split method</label>
         <label>
-          <input type="radio" value="equal" checked={splitMethod === 'equal'} onChange={() => { setSplitMethod('equal'); updateInputs(); }} /> Equally
+          <input type="radio" value="equal" checked={splitMethod === 'equal'} onChange={() => { setSplitMethod('equal'); }} /> Equally
         </label>
         <label>
           <input type="radio" value="percentage" checked={splitMethod === 'percentage'} onChange={() => setSplitMethod('percentage')} /> By percentage
@@ -99,7 +92,7 @@ export default function NewTransactionPage({ usersInGroup, onSubmit }: Props) {
         </label>
       </div>
 
-      {usersInGroup.map(user => (
+      {usersInGroup.filter(user => user.id !== payerId).map(user => (
         <div key={user.id} className="flex gap-2 items-center">
           <span className="w-24">{user.name}</span>
           <input

@@ -10,7 +10,7 @@ export interface Transaction {
   amount: number;
   description: string;
   payerId: number;
-  payerName: string;
+  PayerName: string;
   groupId: number;
   divisionType: DivisionType;
   participants: Participant[];

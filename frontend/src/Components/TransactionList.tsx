@@ -15,7 +15,7 @@ export default function TransactionList({ transactions }: Props) {
         <ul className="space-y-2">
           {transactions.map(tx => (
             <li key={tx.id} className="border p-3 rounded shadow-sm">
-              <strong>{tx.description}</strong> - ${tx.amount.toFixed(2)} paid by {tx.payerName}
+              <strong>{tx.description}</strong> - ${tx.amount.toFixed(2)} paid by {tx.PayerName}
             </li>
           ))}
         </ul>
