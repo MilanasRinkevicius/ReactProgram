@@ -84,7 +84,6 @@ git clone https://github.com/username/project.git
 - No data persistence between server restarts (InMemory DB)
 - User authentication not implemented
 - Some balance features still under development
-- Display bugs after multiple transactions (e.g., wrong ID reference)
 
 ---
 
